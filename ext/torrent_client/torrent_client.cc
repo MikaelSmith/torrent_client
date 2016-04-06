@@ -22,6 +22,8 @@ extern "C" {
             namespace lt = libtorrent;
 
             lt::session s;
+            s.set_alert_mask(lt::alert::status_notification | lt::alert::error_notification);
+
             lt::error_code ec;
             s.listen_on(std::make_pair(6881, 6889), ec);
             if (ec) {
@@ -45,7 +47,7 @@ extern "C" {
             }
 
             while (true) {
-                if (s.wait_for_alert(lt::seconds(1))) {
+                if (s.wait_for_alert(lt::milliseconds(100))) {
                     std::auto_ptr<lt::alert> a = s.pop_alert();
                     if (a->type() == lt::torrent_finished_alert::alert_type) {
                         return Qtrue;
