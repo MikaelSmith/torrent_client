@@ -11,5 +11,5 @@ Gem::Specification.new do |s|
 
   s.extensions << 'ext/torrent_client/extconf.rb'
 
-  s.add_development_dependency 'rake-compiler'
+  s.add_development_dependency 'rake-compiler', '~> 0.9.7'
 end
