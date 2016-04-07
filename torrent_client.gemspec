@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name    = 'torrent_client'
-  s.version = '0.2.0'
+  s.version = '0.2.1'
   s.summary = 'A simple Ruby torrent downloader'
   s.author  = 'Michael Smith'
   s.email   = 'mikael.t.smith@gmail.com'

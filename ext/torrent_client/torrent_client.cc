@@ -53,7 +53,7 @@ extern "C" {
                 return Qnil;
             }
 
-            while (true) {
+            while (handle.is_valid()) {
                 if (_session->wait_for_alert(lt::seconds(1))) {
                     std::auto_ptr<lt::alert> a = _session->pop_alert();
                     if (a->type() == lt::torrent_finished_alert::alert_type) {
@@ -75,7 +75,6 @@ extern "C" {
             lt::error_code ec;
             lt::add_torrent_params p;
             p.save_path = StringValueCStr(destination_dir);
-            p.flags = lt::add_torrent_params::flag_paused;
             p.ti = new lt::torrent_info(StringValueCStr(torrent_file), ec);
             if (ec) {
                 rb_raise(rb_eRuntimeError, ec.message().c_str());
@@ -88,21 +87,22 @@ extern "C" {
                 return Qnil;
             }
 
-            lt::torrent_status status = handle.status();
-            while (status.state == lt::torrent_status::checking_files ||
-                   status.state == lt::torrent_status::checking_resume_data) {
-                _session->wait_for_alert(lt::seconds(1));
-                status = handle.status();
+            bool success = false;
+            bool running = true;
+            while (handle.is_valid()) {
+                if (_session->wait_for_alert(lt::seconds(1))) {
+                    std::auto_ptr<lt::alert> a = _session->pop_alert();
+                    if (a->type() == lt::torrent_checked_alert::alert_type) {
+                        handle.pause();
+                        success = handle.status(0).is_finished;
+                        break;
+                    }
+                }
             }
 
             _session->remove_torrent(handle);
 
-            if (status.state == lt::torrent_status::seeding ||
-                status.state == lt::torrent_status::queued_for_checking) {
-                return Qtrue;
-            } else {
-                return Qfalse;
-            }
+            return success ? Qtrue : Qfalse;
         } catch (std::exception &e) {
             rb_raise(rb_eRuntimeError, "failed from unknown exception");
         }
